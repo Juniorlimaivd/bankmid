@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"log"
 	"strconv"
 
+	"./src/client"
 	"./src/dns"
 	"./src/server"
 )
@@ -25,7 +27,9 @@ func createServer() {
 }
 
 func createClient() {
-
+	proxy := client.NewProxy("localhost", 1234)
+	balance := proxy.GetBalance("ACC4")
+	log.Printf("Balance: %f", balance)
 }
 
 func createDNS() {

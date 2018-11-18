@@ -3,7 +3,7 @@ package client
 import (
 	"reflect"
 
-	"../global"
+	"../common"
 )
 
 // Proxy ...
@@ -13,7 +13,7 @@ type Proxy struct {
 	requestor *Requestor
 }
 
-func newProxy(host string, port int) *Proxy {
+func NewProxy(host string, port int) *Proxy {
 	return &Proxy{
 		host:      host,
 		port:      port,
@@ -21,26 +21,26 @@ func newProxy(host string, port int) *Proxy {
 	}
 }
 
-func (p *Proxy) getBalance(accountID string) float64 {
-	reqPkt := global.NewRequestPkt("GetBalance", accountID)
-	retPkt := p.requestor.invoke(reqPk t)
+func (p *Proxy) GetBalance(accountID string) float64 {
+	reqPkt := common.NewRequestPkt("GetBalance", accountID)
+	retPkt := p.requestor.invoke(reqPkt)
 	return reflect.ValueOf(retPkt.ReturnValue).Float()
 }
 
-func (p *Proxy) withdraw(accountID string, amount float64) string {
-	reqPkt := global.NewRequestPkt("Withdraw", accountID, amount)
+func (p *Proxy) Withdraw(accountID string, amount float64) string {
+	reqPkt := common.NewRequestPkt("Withdraw", accountID, amount)
 	retPkt := p.requestor.invoke(reqPkt)
 	return reflect.ValueOf(retPkt.ReturnValue).String()
 }
 
-func (p *Proxy) deposit(accountID string, amount float64) string {
-	reqPkt := global.NewRequestPkt("Deposit", accountID, amount)
+func (p *Proxy) Deposit(accountID string, amount float64) string {
+	reqPkt := common.NewRequestPkt("Deposit", accountID, amount)
 	retPkt := p.requestor.invoke(reqPkt)
 	return reflect.ValueOf(retPkt.ReturnValue).String()
 }
 
-func (p *Proxy) transfer(payerID string, payeeID string, amount float64) string {
-	reqPkt := global.NewRequestPkt("Transfer", payerID, payeeID, amount)
+func (p *Proxy) Transfer(payerID string, payeeID string, amount float64) string {
+	reqPkt := common.NewRequestPkt("Transfer", payerID, payeeID, amount)
 	retPkt := p.requestor.invoke(reqPkt)
 	return reflect.ValueOf(retPkt.ReturnValue).String()
 }

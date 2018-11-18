@@ -51,9 +51,9 @@ func (ns *NamingServer) Start() {
 
 		case "consult":
 			{
-				var name string
+				name := new(string)
 				ns.marshaller.Unmarshall(pkt.Data, name)
-				s := ns.dns.getService(name)
+				s := ns.dns.getService(*name)
 				pkt := ns.marshaller.Marshall(s)
 				ns.srh.send(pkt)
 			}
