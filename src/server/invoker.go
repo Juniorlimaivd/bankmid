@@ -33,6 +33,7 @@ func NewInvoker(object interface{}) *Invoker {
 
 	inv.registerMethods()
 	inv.srh = newServerRequestHandler(1234)
+	inv.srh.accept()
 	return &inv
 }
 
@@ -127,7 +128,8 @@ func (i *Invoker) Invoke() {
 		switch {
 		case err == io.EOF:
 			log.Println("close this connection.\n   ---")
-			return
+			i.srh.accept()
+			continue
 		case err != nil:
 			log.Println("\nError reading command. Got: \n", err)
 			continue

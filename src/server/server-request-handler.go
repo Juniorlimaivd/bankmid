@@ -20,14 +20,16 @@ func newServerRequestHandler(port int) *ServerRequestHandler {
 	tcpSRH := new(ServerRequestHandler)
 	tcpSRH.listener, _ = net.Listen("tcp", ":"+strconv.Itoa(port))
 
-	// log.Println("Listen on", tcpSRH.listener.Addr().String())
-	conn, _ := tcpSRH.listener.Accept()
-	// log.Println("Accept a connection request from", conn.RemoteAddr())
-	tcpSRH.remoteAddr = conn.RemoteAddr().String()
-	tcpSRH.inToClient = bufio.NewWriter(conn)
-	tcpSRH.outToClient = bufio.NewReader(conn)
-
 	return tcpSRH
+}
+
+func (c *ServerRequestHandler) accept() {
+	// log.Println("Listen on", tcpSRH.listener.Addr().String())
+	conn, _ := c.listener.Accept()
+	// log.Println("Accept a connection request from", conn.RemoteAddr())
+	c.remoteAddr = conn.RemoteAddr().String()
+	c.inToClient = bufio.NewWriter(conn)
+	c.outToClient = bufio.NewReader(conn)
 }
 
 func (c *ServerRequestHandler) send(msg []byte) {

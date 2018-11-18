@@ -11,7 +11,6 @@ import (
 )
 
 func createServer() {
-
 	accs := make(map[string]*Account)
 	initialBalance := 1000.0
 	accsNumber := []int{1, 2, 3, 4, 5, 6, 11, 435, 43232, 5}
@@ -23,7 +22,6 @@ func createServer() {
 
 	invoker := server.NewInvoker(&accManager)
 	invoker.Invoke()
-
 }
 
 func createClient() {
@@ -43,6 +41,7 @@ func main() {
 		"",
 		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
 	flag.Parse()
+
 	switch *mwType {
 	case "server":
 		createServer()
