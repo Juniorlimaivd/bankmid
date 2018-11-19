@@ -2,8 +2,6 @@ package server
 
 import (
 	"bufio"
-	"encoding/gob"
-	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -40,25 +38,16 @@ func (c *ClientRequestHandler) connect() error {
 
 func (c *ClientRequestHandler) send(data []byte) error {
 
-	enc := gob.NewEncoder(c.rw)
-	err := enc.Encode(data)
-	if err != nil {
-		fmt.Println("Error encoding", err)
-		return err
-	}
-	err = c.rw.Flush()
-	if err != nil {
-		fmt.Println("Flush failed")
-		return err
-	}
+	c.rw.Write(data)
+	c.rw.Flush()
+
 	return nil
 }
 
 func (c *ClientRequestHandler) receive() []byte {
-	var data []byte
-	decoder := gob.NewDecoder(c.rw)
-	decoder.Decode(&data)
-	return data
+	data := make([]byte, 4096)
+	n, _ := c.rw.Read(data)
+	return data[:n]
 }
 
 func (c *ClientRequestHandler) close() error {

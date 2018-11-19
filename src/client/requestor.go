@@ -24,7 +24,9 @@ func (r *Requestor) getServiceInfo(name string) (string, int) {
 	crh := newClientRequestHandler("localhost", 5555)
 	crh.connect()
 
-	data := r.marshaller.Marshall(name)
+	requestInfo := common.RequestInfo{Name: name}
+
+	data := r.marshaller.Marshall(requestInfo)
 
 	consultPkt := common.ConsultPkt{ConsultType: "consult", Data: data}
 

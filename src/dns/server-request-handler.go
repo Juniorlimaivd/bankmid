@@ -2,7 +2,6 @@ package dns
 
 import (
 	"bufio"
-	"encoding/gob"
 	"log"
 	"net"
 	"strconv"
@@ -34,21 +33,14 @@ func newServerRequestHandler(port int) *ServerRequestHandler {
 }
 
 func (c *ServerRequestHandler) send(msg []byte) {
-	encoder := gob.NewEncoder(c.inToClient)
-
-	encoder.Encode(msg)
-
+	c.inToClient.Write(msg)
 	c.inToClient.Flush()
 }
 
 func (c *ServerRequestHandler) receive() []byte {
-	decoder := gob.NewDecoder(c.outToClient)
-
-	var data []byte
-
-	decoder.Decode(&data)
-
-	return data
+	data := make([]byte, 4096)
+	n, _ := c.outToClient.Read(data)
+	return data[:n]
 }
 
 func (c *ServerRequestHandler) close() {

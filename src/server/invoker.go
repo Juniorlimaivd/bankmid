@@ -121,9 +121,11 @@ func (i *Invoker) handleRequestPkt(requestPkt *common.RequestPkt) common.ReturnP
 // Invoke invokes the invoker
 func (i *Invoker) Invoke() {
 	for {
-		data := i.srh.receive()
+		data, err := i.srh.receive()
 		request := new(common.RequestPkt)
-		err := i.marshaller.Unmarshall(data, &request)
+		if err == nil {
+			err = i.marshaller.Unmarshall(data, &request)
+		}
 
 		switch {
 		case err == io.EOF:

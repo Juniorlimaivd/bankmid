@@ -18,6 +18,7 @@ func (dns *NamingService) addService(service *common.Service) {
 }
 
 func (dns *NamingService) getService(name string) *common.Service {
+	log.Printf("Geting service of name %s", name)
 	return dns.services[name]
 }
 
@@ -37,8 +38,9 @@ func (ns *NamingServer) Start() {
 		ns.srh = newServerRequestHandler(5555)
 		data := ns.srh.receive()
 		pkt := new(common.ConsultPkt)
+
 		ns.marshaller.Unmarshall(data, pkt)
-		fmt.Println("packet type: ")
+		fmt.Printf("packet type: ")
 		fmt.Println(pkt.ConsultType)
 		switch pkt.ConsultType {
 
@@ -51,9 +53,9 @@ func (ns *NamingServer) Start() {
 
 		case "consult":
 			{
-				name := new(string)
-				ns.marshaller.Unmarshall(pkt.Data, name)
-				s := ns.dns.getService(*name)
+				requestInfo := new(common.RequestInfo)
+				ns.marshaller.Unmarshall(pkt.Data, requestInfo)
+				s := ns.dns.getService(requestInfo.Name)
 				pkt := ns.marshaller.Marshall(s)
 				ns.srh.send(pkt)
 			}

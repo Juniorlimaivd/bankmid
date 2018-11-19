@@ -42,3 +42,8 @@ type ConsultPkt struct {
 	ConsultType string
 	Data        []byte
 }
+
+// RequestInfo ...
+type RequestInfo struct {
+	Name string
+}

@@ -26,8 +26,8 @@ func createServer() {
 
 func createClient() {
 	proxy := client.NewProxy("localhost", 1234)
-	balance := proxy.GetBalance("ACC4")
-	log.Printf("Balance: %f", balance)
+	balance := proxy.Transfer("ACC4", "ACC2", 50.)
+	log.Printf("Balance: %s", balance)
 }
 
 func createDNS() {

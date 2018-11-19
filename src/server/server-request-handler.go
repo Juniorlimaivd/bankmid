@@ -2,7 +2,6 @@ package server
 
 import (
 	"bufio"
-	"encoding/gob"
 	"net"
 	"strconv"
 )
@@ -33,19 +32,12 @@ func (c *ServerRequestHandler) accept() {
 }
 
 func (c *ServerRequestHandler) send(msg []byte) {
-	encoder := gob.NewEncoder(c.inToClient)
-
-	encoder.Encode(msg)
-
+	c.inToClient.Write(msg)
 	c.inToClient.Flush()
 }
 
-func (c *ServerRequestHandler) receive() []byte {
-	decoder := gob.NewDecoder(c.outToClient)
-
-	var data []byte
-
-	decoder.Decode(&data)
-
-	return data
+func (c *ServerRequestHandler) receive() ([]byte, error) {
+	data := make([]byte, 4096)
+	n, err := c.outToClient.Read(data)
+	return data[:n], err
 }
