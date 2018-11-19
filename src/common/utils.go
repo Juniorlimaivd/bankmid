@@ -1,9 +1,5 @@
 package common
 
-import (
-	"reflect"
-)
-
 // RequestPkt ...
 type RequestPkt struct {
 	MethodName string
@@ -14,8 +10,7 @@ type RequestPkt struct {
 func NewRequestPkt(methodName string, args ...interface{}) RequestPkt {
 	var _args []interface{}
 	for _, arg := range args {
-		_arg := reflect.ValueOf(arg).Interface()
-		_args = append(_args, _arg)
+		_args = append(_args, arg)
 	}
 	return RequestPkt{
 		MethodName: methodName,

@@ -139,6 +139,7 @@ func (i *Invoker) Invoke() {
 
 		go func() {
 			start := time.Now()
+
 			returnPkt := i.handleRequestPkt(request)
 			pkt := i.marshaller.Marshall(returnPkt)
 			i.srh.send(pkt)
