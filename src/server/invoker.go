@@ -33,7 +33,6 @@ func NewInvoker(object interface{}) *Invoker {
 
 	inv.registerMethods()
 	inv.srh = newServerRequestHandler(1234)
-	inv.srh.accept()
 	return &inv
 }
 
@@ -118,10 +117,10 @@ func (i *Invoker) handleRequestPkt(requestPkt *common.RequestPkt) common.ReturnP
 	return common.ReturnPkt{MethodName: requestPkt.MethodName, ReturnValue: ret, Err: err}
 }
 
-// Invoke invokes the invoker
-func (i *Invoker) Invoke() {
+func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
+
 	for {
-		data, err := i.srh.receive()
+		data, err := srh.receive()
 		request := new(common.RequestPkt)
 		if err == nil {
 			err = i.marshaller.Unmarshall(data, &request)
@@ -139,14 +138,22 @@ func (i *Invoker) Invoke() {
 
 		go func() {
 			start := time.Now()
-
 			returnPkt := i.handleRequestPkt(request)
 			pkt := i.marshaller.Marshall(returnPkt)
-			i.srh.send(pkt)
+			srh.send(pkt)
 			end := time.Now()
 			log.Printf("%s - %.2f us", returnPkt, float64(end.Sub(start).Nanoseconds()/1000.))
 
 		}()
+	}
 
+}
+
+// Invoke invokes the invoker
+func (i *Invoker) Invoke() {
+	for {
+		srh := i.srh
+		srh.accept()
+		go i.handleConnection(srh)
 	}
 }
