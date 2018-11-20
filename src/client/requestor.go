@@ -9,15 +9,19 @@ import (
 
 // Requestor ...
 type Requestor struct {
+	dnsAddr    string
+	dnsPort    int
 	crh        *ClientRequestHandler
 	marshaller *common.Marshaller
 	username   string
 	password   string
 }
 
-func newRequestor(user string, password string) *Requestor {
+func newRequestor(user string, password string, dnsAddr string, dnsPort int) *Requestor {
 	crh := new(ClientRequestHandler)
 	return &Requestor{
+		dnsAddr:    dnsAddr,
+		dnsPort:    dnsPort,
 		crh:        crh,
 		marshaller: new(common.Marshaller),
 		username:   user,
@@ -26,7 +30,7 @@ func newRequestor(user string, password string) *Requestor {
 }
 
 func (r *Requestor) getServiceInfo(name string) (string, int, string) {
-	crh := newClientRequestHandler("localhost", 5555)
+	crh := newClientRequestHandler(r.dnsAddr, r.dnsPort)
 	crh.connect()
 
 	requestInfo := common.RequestInfo{Name: name, Username: r.username, Password: r.password}

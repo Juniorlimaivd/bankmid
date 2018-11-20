@@ -24,8 +24,8 @@ func createServer(dnsAddr string, dnsPort int) {
 	invoker.Invoke()
 }
 
-func createClient() {
-	proxy := client.NewProxy("ACC4", "pudim")
+func createClient(dnsAddr string, dnsPort int) {
+	proxy := client.NewProxy("ACC4", "pudim", dnsAddr, dnsPort)
 	balance := proxy.Withdraw("ACC4", 50.0)
 	log.Printf("Balance: %s", balance)
 }
@@ -44,12 +44,12 @@ func main() {
 	dnsAddr := flag.String(
 		"dnsAddr",
 		"localhost",
-		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
+		"")
 
 	dnsPort := flag.Int(
 		"dnsPort",
 		80,
-		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
+		"")
 
 	flag.Parse()
 
@@ -57,7 +57,7 @@ func main() {
 	case "server":
 		createServer(*dnsAddr, *dnsPort)
 	case "client":
-		createClient()
+		createClient(*dnsAddr, *dnsPort)
 	case "dns":
 		createDNS()
 
