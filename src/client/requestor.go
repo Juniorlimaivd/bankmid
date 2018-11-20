@@ -10,21 +10,25 @@ import (
 type Requestor struct {
 	crh        *ClientRequestHandler
 	marshaller *common.Marshaller
+	usuario    string
+	senha      string
 }
 
-func newRequestor(host string, port int) *Requestor {
+func newRequestor(user string, password string) *Requestor {
 	crh := new(ClientRequestHandler)
 	return &Requestor{
 		crh:        crh,
 		marshaller: new(common.Marshaller),
+		usuario:    user,
+		senha:      password,
 	}
 }
 
-func (r *Requestor) getServiceInfo(name string) (string, int) {
+func (r *Requestor) getServiceInfo(name string) (string, int, string) {
 	crh := newClientRequestHandler("localhost", 5555)
 	crh.connect()
 
-	requestInfo := common.RequestInfo{Name: name}
+	requestInfo := common.RequestInfo{Name: name, Usuario: r.usuario, Senha: r.senha}
 
 	data := r.marshaller.Marshall(requestInfo)
 
@@ -36,17 +40,18 @@ func (r *Requestor) getServiceInfo(name string) (string, int) {
 
 	retData := crh.receive()
 
-	returnPkt := new(common.Service)
+	returnPkt := new(common.ConsultReturnPkt)
 
 	r.marshaller.Unmarshall(retData, returnPkt)
 
-	return returnPkt.IP, int(returnPkt.Port)
+	return returnPkt.Servico.IP, int(returnPkt.Servico.Port), returnPkt.Key
 }
 
 func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 
-	host, port := r.getServiceInfo(request.MethodName)
+	host, port, key := r.getServiceInfo(request.MethodName)
 	log.Printf("Service %s on %s,%d", request.MethodName, host, port)
+	log.Printf("Key to encrypt: %s", key)
 	r.crh = newClientRequestHandler(host, port)
 	r.crh.connect()
 

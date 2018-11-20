@@ -38,7 +38,22 @@ type ConsultPkt struct {
 	Data        []byte
 }
 
+// ConsultReturnPkt ...
+type ConsultReturnPkt struct {
+	Servico Service
+	Key     string
+}
+
 // RequestInfo ...
 type RequestInfo struct {
-	Name string
+	Name    string
+	Usuario string
+	Senha   string
+}
+
+// User information ...
+type User struct {
+	Usuario string
+	Senha string
+	Key string
 }

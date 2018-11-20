@@ -13,11 +13,9 @@ type Proxy struct {
 	requestor *Requestor
 }
 
-func NewProxy(host string, port int) *Proxy {
+func NewProxy(host string, port int, user string, password string) *Proxy {
 	return &Proxy{
-		host:      host,
-		port:      port,
-		requestor: newRequestor(host, port),
+		requestor: newRequestor(user, password),
 	}
 }
 

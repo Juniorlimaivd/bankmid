@@ -10,6 +10,7 @@ import (
 // NamingService handles information about all the registered services
 type NamingService struct {
 	services map[string]*common.Service
+	users    map[string]*common.User
 }
 
 func (dns *NamingService) addService(service *common.Service) {
@@ -18,8 +19,17 @@ func (dns *NamingService) addService(service *common.Service) {
 }
 
 func (dns *NamingService) getService(name string) *common.Service {
-	log.Printf("Geting service of name %s", name)
+	log.Printf("Getting service of name %s", name)
 	return dns.services[name]
+}
+
+func (dns *NamingService) getKey(user string, password string) string {
+	log.Printf("Getting user %s key", user)
+	if password == dns.users[user].Senha {
+		return dns.users[user].Key
+	} else {
+		return ""
+	}
 }
 
 // NamingServer perfoms all the operations
@@ -33,6 +43,7 @@ type NamingServer struct {
 func (ns *NamingServer) Start() {
 	ns.dns = new(NamingService)
 	ns.dns.services = make(map[string]*common.Service)
+	ns.dns.users = make(map[string]*common.User)
 
 	for {
 		ns.srh = newServerRequestHandler(5555)
@@ -56,7 +67,11 @@ func (ns *NamingServer) Start() {
 				requestInfo := new(common.RequestInfo)
 				ns.marshaller.Unmarshall(pkt.Data, requestInfo)
 				s := ns.dns.getService(requestInfo.Name)
-				pkt := ns.marshaller.Marshall(s)
+				key := ns.dns.getKey(requestInfo.Usuario, requestInfo.Senha)
+				returnPkt := new(common.ConsultReturnPkt)
+				returnPkt.Servico = s
+				returnPkt.Key = key
+				pkt := ns.marshaller.Marshall(returnPkt)
 				ns.srh.send(pkt)
 			}
 
