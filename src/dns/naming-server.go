@@ -7,7 +7,7 @@ import (
 	"../common"
 )
 
-// NamingService handles information about all the registered services
+// NamingService handles information about all the registered service and userss
 type NamingService struct {
 	services map[string]*common.Service
 	users    map[string]*common.User
@@ -25,6 +25,10 @@ func (dns *NamingService) getService(name string) *common.Service {
 
 func (dns *NamingService) getKey(user string, password string) string {
 	log.Printf("Getting user %s key", user)
+
+	if dns.users[user] == nil {
+		return ""
+	}
 
 	if password == dns.users[user].Password {
 		log.Printf("Key: %s", dns.users[user].Key)
@@ -75,8 +79,12 @@ func (ns *NamingServer) Start() {
 				s := ns.dns.getService(requestInfo.Name)
 				key := ns.dns.getKey(requestInfo.Username, requestInfo.Password)
 				returnPkt := new(common.ConsultReturnPkt)
-				returnPkt.ServiceInfo = s
-				returnPkt.Key = key
+
+				if key != "" {
+					returnPkt.ServiceInfo = s
+					returnPkt.Key = key
+				}
+
 				pkt := ns.marshaller.Marshall(returnPkt)
 				ns.srh.send(pkt)
 			}

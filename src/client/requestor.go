@@ -45,14 +45,28 @@ func (r *Requestor) getServiceInfo(name string) (string, int, string) {
 
 	r.marshaller.Unmarshall(retData, returnPkt)
 
+	if returnPkt.ServiceInfo == nil {
+		return "", 0, returnPkt.Key
+	}
+
 	return returnPkt.ServiceInfo.IP, int(returnPkt.ServiceInfo.Port), returnPkt.Key
 }
 
 func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 
 	host, port, key := r.getServiceInfo(request.MethodName)
+
 	log.Printf("Service %s on %s,%d", request.MethodName, host, port)
 	log.Printf("Key to encrypt: %s", key)
+
+	if key == "" {
+		log.Printf("Autentication failed. Invalid credentials.")
+		return new(common.ReturnPkt)
+	} else if port < 1000 {
+		log.Printf("Service not found.")
+		return new(common.ReturnPkt)
+	}
+
 	r.crh = newClientRequestHandler(host, port)
 	r.crh.connect()
 
