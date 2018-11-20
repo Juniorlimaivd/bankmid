@@ -21,6 +21,8 @@ type MethodInfo struct {
 
 // Invoker handles the directing from ServerRequestHandler to the correct remote method
 type Invoker struct {
+	dnsAddr    string
+	dnsPort    int
 	srh        *ServerRequestHandler
 	marshaller *common.Marshaller
 	methods    map[string]*MethodInfo
@@ -28,9 +30,12 @@ type Invoker struct {
 }
 
 // NewInvoker creates a new invoker
-func NewInvoker(object interface{}) *Invoker {
+func NewInvoker(object interface{}, dnsAddr string, dnsPort int) *Invoker {
 
-	inv := Invoker{srh: new(ServerRequestHandler),
+	inv := Invoker{
+		dnsAddr:    dnsAddr,
+		dnsPort:    dnsPort,
+		srh:        new(ServerRequestHandler),
 		marshaller: new(common.Marshaller),
 		object:     object}
 
@@ -40,8 +45,8 @@ func NewInvoker(object interface{}) *Invoker {
 }
 
 func (i *Invoker) registerMethodInDNS(name string) {
-
-	dnsSrh := newClientRequestHandler("localhost", 5555)
+	log.Printf("Attempt to connect to DNS (%s:%d)", i.dnsAddr, i.dnsPort)
+	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
 	dnsSrh.connect()
 
 	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: 1234}

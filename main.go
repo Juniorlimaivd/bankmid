@@ -10,7 +10,7 @@ import (
 	"./src/server"
 )
 
-func createServer() {
+func createServer(dnsAddr string, dnsPort int) {
 	accs := make(map[string]*Account)
 	initialBalance := 1000.0
 	accsNumber := []int{1, 2, 3, 4, 5, 6, 11, 435, 43232, 5}
@@ -20,7 +20,7 @@ func createServer() {
 	}
 	accManager := AccountsManager{Accs: accs}
 
-	invoker := server.NewInvoker(&accManager)
+	invoker := server.NewInvoker(&accManager, dnsAddr, dnsPort)
 	invoker.Invoke()
 }
 
@@ -40,11 +40,22 @@ func main() {
 		"type",
 		"",
 		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
+
+	dnsAddr := flag.String(
+		"dnsAddr",
+		"localhost",
+		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
+
+	dnsPort := flag.Int(
+		"dnsPort",
+		80,
+		"Describes the middleware type to be initialized\n* Available options\n- client\n- server\n- dns")
+
 	flag.Parse()
 
 	switch *mwType {
 	case "server":
-		createServer()
+		createServer(*dnsAddr, *dnsPort)
 	case "client":
 		createClient()
 	case "dns":
