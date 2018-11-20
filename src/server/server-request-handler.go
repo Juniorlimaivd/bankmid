@@ -10,6 +10,7 @@ import (
 type ServerRequestHandler struct {
 	port        int
 	listener    net.Listener
+	connection  net.Conn
 	outToClient *bufio.Reader
 	inToClient  *bufio.Writer
 	remoteAddr  string
@@ -24,11 +25,11 @@ func newServerRequestHandler(port int) *ServerRequestHandler {
 
 func (c *ServerRequestHandler) accept() {
 	// log.Println("Listen on", tcpSRH.listener.Addr().String())
-	conn, _ := c.listener.Accept()
+	c.connection, _ = c.listener.Accept()
 	// log.Println("Accept a connection request from", conn.RemoteAddr())
-	c.remoteAddr = conn.RemoteAddr().String()
-	c.inToClient = bufio.NewWriter(conn)
-	c.outToClient = bufio.NewReader(conn)
+	c.remoteAddr = c.connection.RemoteAddr().String()
+	c.inToClient = bufio.NewWriter(c.connection)
+	c.outToClient = bufio.NewReader(c.connection)
 }
 
 func (c *ServerRequestHandler) send(msg []byte) {

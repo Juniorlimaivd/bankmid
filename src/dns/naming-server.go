@@ -93,9 +93,13 @@ func (ns *NamingServer) Start() {
 				requestInfo := new(common.RequestInfo)
 				ns.marshaller.Unmarshall(pkt.Data, requestInfo)
 
-				key := ns.dns.users[requestInfo.Name].Key
 				returnPkt := new(common.ConsultReturnPkt)
-				returnPkt.Key = key
+
+				if ns.dns.users[requestInfo.Name] != nil {
+					key := ns.dns.users[requestInfo.Name].Key
+					returnPkt.Key = key
+				}
+
 				pkt := ns.marshaller.Marshall(returnPkt)
 				ns.srh.send(pkt)
 			}

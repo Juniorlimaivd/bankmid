@@ -19,17 +19,20 @@ func Encrypt(key []byte, message []byte) (ciphertext []byte) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	iv := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	ciphertext = aesgcm.Seal(nil, iv, plaintext, nil)
@@ -42,12 +45,14 @@ func Encrypt(key []byte, message []byte) (ciphertext []byte) {
 func Decrypt(key []byte, ciphertext []byte) (message []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	iv := ciphertext[:12]
@@ -55,7 +60,8 @@ func Decrypt(key []byte, ciphertext []byte) (message []byte) {
 
 	plaintext, err := aesgcm.Open(nil, iv, msg, nil)
 	if err != nil {
-		panic(err.Error())
+		fmt.Println(err.Error())
+		return make([]byte, 0)
 	}
 
 	message = plaintext

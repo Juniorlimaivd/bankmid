@@ -2,6 +2,7 @@ package client
 
 import (
 	"bufio"
+	"fmt"
 	"log"
 	"net"
 	"strconv"
@@ -44,7 +45,12 @@ func (c *ClientRequestHandler) send(data []byte) error {
 
 func (c *ClientRequestHandler) receive() []byte {
 	data := make([]byte, 4096)
-	n, _ := c.rw.Read(data)
+	n, err := c.rw.Read(data)
+
+	if err != nil {
+		fmt.Println(err)
+		return make([]byte, 0)
+	}
 	return data[:n]
 }
 

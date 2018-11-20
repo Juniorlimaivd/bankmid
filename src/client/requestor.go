@@ -75,7 +75,12 @@ func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 
 	encryptedContent := common.Encrypt(keyData, marshContent)
 
-	content := common.Request{Username: r.username, Data: encryptedContent}
+	if len(encryptedContent) == 0 {
+		log.Printf("Failed Encrypting.")
+		return new(common.ReturnPkt)
+	}
+
+	content := common.Request{Username: "ACC3", Data: encryptedContent}
 
 	packet := r.marshaller.Marshall(content)
 
@@ -83,7 +88,18 @@ func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 
 	marshRet := r.crh.receive()
 
+	if len(marshRet) == 0 {
+		log.Printf("Invalid received packet. Verify your requisition.")
+		return new(common.ReturnPkt)
+	}
+
 	decrypted := common.Decrypt(keyData, marshRet)
+
+	if len(decrypted) == 0 {
+		log.Printf("Failed Decrypting.")
+		return new(common.ReturnPkt)
+	}
+
 	var resPkt common.ReturnPkt
 	r.marshaller.Unmarshall(decrypted, &resPkt)
 

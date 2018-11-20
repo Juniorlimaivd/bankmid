@@ -2,6 +2,8 @@ package server
 
 import (
 	"encoding/hex"
+	"errors"
+	"fmt"
 	"io"
 	"log"
 	"reflect"
@@ -148,6 +150,17 @@ func (i *Invoker) getUserKey(request *common.Request) string {
 
 }
 
+func (i *Invoker) createEmptyPacket() *common.ReturnPkt {
+	return &common.ReturnPkt{MethodName: "", ReturnValue: nil, Err: errors.New("Invalid requisition")}
+}
+
+func (i *Invoker) sendEmptyResponse(srh *ServerRequestHandler, keyData []byte) {
+	retPkt := i.createEmptyPacket()
+	pkt := i.marshaller.Marshall(retPkt)
+	encryptedContent := common.Encrypt(keyData, pkt)
+	srh.send(encryptedContent)
+}
+
 func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 
 	for {
@@ -167,9 +180,23 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 
 		key := i.getUserKey(req)
 
+		if key == "" {
+			log.Println("No key found for user.")
+			i.sendEmptyResponse(srh, []byte(""))
+			i.srh.connection.Close()
+			break
+		}
+
 		keyData, _ := hex.DecodeString(key)
 
 		data = common.Decrypt(keyData, req.Data)
+
+		if len(data) == 0 {
+			log.Println("Error decrypting message. Wrong key or data.")
+			i.sendEmptyResponse(srh, []byte(""))
+			i.srh.connection.Close()
+			break
+		}
 
 		request := new(common.RequestPkt)
 
@@ -193,6 +220,13 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 			pkt := i.marshaller.Marshall(returnPkt)
 
 			encryptedContent := common.Encrypt(keyData, pkt)
+
+			if len(encryptedContent) == 0 {
+				fmt.Println("Failed encrypting message.")
+				i.sendEmptyResponse(srh, []byte(""))
+				i.srh.connection.Close()
+				return
+			}
 
 			srh.send(encryptedContent)
 			end := time.Now()
