@@ -49,7 +49,7 @@ func (i *Invoker) registerMethodInDNS(name string) {
 	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
 	dnsSrh.connect()
 
-	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: 1234}
+	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: 1234, AccessLevel: 1}
 
 	data := i.marshaller.Marshall(service)
 

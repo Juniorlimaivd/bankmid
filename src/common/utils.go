@@ -32,9 +32,10 @@ type ReturnPkt struct {
 
 // Service type encapsulates service information (name, ip, port) fot the naming server
 type Service struct {
-	Name string
-	IP   string
-	Port int32
+	Name        string
+	IP          string
+	Port        int32
+	AccessLevel int
 }
 
 // ConsultPkt ...
@@ -58,7 +59,8 @@ type RequestInfo struct {
 
 // User information ...
 type User struct {
-	Username string
-	Password string
-	Key      string
+	Username    string
+	Password    string
+	Key         string
+	AccessLevel int
 }

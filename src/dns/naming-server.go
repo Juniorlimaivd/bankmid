@@ -51,8 +51,9 @@ func (ns *NamingServer) Start() {
 	ns.dns.services = make(map[string]*common.Service)
 	ns.dns.users = make(map[string]*common.User)
 	ns.dns.users["ACC4"] = &common.User{Username: "ACC4",
-		Password: "pudim",
-		Key:      "6368616e676520746869732070617373776f726420746f206120736563726574"}
+		Password:    "pudim",
+		Key:         "6368616e676520746869732070617373776f726420746f206120736563726574",
+		AccessLevel: 1}
 
 	for {
 		ns.srh = newServerRequestHandler(5555)
@@ -80,7 +81,7 @@ func (ns *NamingServer) Start() {
 				key := ns.dns.getKey(requestInfo.Username, requestInfo.Password)
 				returnPkt := new(common.ConsultReturnPkt)
 
-				if key != "" {
+				if key != "" && s.AccessLevel <= ns.dns.users[requestInfo.Username].AccessLevel {
 					returnPkt.ServiceInfo = s
 					returnPkt.Key = key
 				}
