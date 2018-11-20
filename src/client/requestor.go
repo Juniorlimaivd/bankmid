@@ -80,7 +80,7 @@ func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 		return new(common.ReturnPkt)
 	}
 
-	content := common.Request{Username: "ACC3", Data: encryptedContent}
+	content := common.Request{Username: r.username, Data: encryptedContent}
 
 	packet := r.marshaller.Marshall(content)
 
