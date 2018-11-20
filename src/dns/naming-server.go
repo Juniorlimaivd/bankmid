@@ -25,11 +25,13 @@ func (dns *NamingService) getService(name string) *common.Service {
 
 func (dns *NamingService) getKey(user string, password string) string {
 	log.Printf("Getting user %s key", user)
-	if password == dns.users[user].Senha {
+
+	if password == dns.users[user].Password {
+		log.Printf("Key: %s", dns.users[user].Key)
 		return dns.users[user].Key
-	} else {
-		return ""
 	}
+	return ""
+
 }
 
 // NamingServer perfoms all the operations
@@ -44,6 +46,9 @@ func (ns *NamingServer) Start() {
 	ns.dns = new(NamingService)
 	ns.dns.services = make(map[string]*common.Service)
 	ns.dns.users = make(map[string]*common.User)
+	ns.dns.users["ACC4"] = &common.User{Username: "ACC4",
+		Password: "pudim",
+		Key:      "6368616e676520746869732070617373776f726420746f206120736563726574"}
 
 	for {
 		ns.srh = newServerRequestHandler(5555)
@@ -66,10 +71,22 @@ func (ns *NamingServer) Start() {
 			{
 				requestInfo := new(common.RequestInfo)
 				ns.marshaller.Unmarshall(pkt.Data, requestInfo)
+
 				s := ns.dns.getService(requestInfo.Name)
-				key := ns.dns.getKey(requestInfo.Usuario, requestInfo.Senha)
+				key := ns.dns.getKey(requestInfo.Username, requestInfo.Password)
 				returnPkt := new(common.ConsultReturnPkt)
-				returnPkt.Servico = s
+				returnPkt.ServiceInfo = s
+				returnPkt.Key = key
+				pkt := ns.marshaller.Marshall(returnPkt)
+				ns.srh.send(pkt)
+			}
+		case "consultname":
+			{
+				requestInfo := new(common.RequestInfo)
+				ns.marshaller.Unmarshall(pkt.Data, requestInfo)
+
+				key := ns.dns.users[requestInfo.Name].Key
+				returnPkt := new(common.ConsultReturnPkt)
 				returnPkt.Key = key
 				pkt := ns.marshaller.Marshall(returnPkt)
 				ns.srh.send(pkt)

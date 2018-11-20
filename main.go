@@ -25,8 +25,8 @@ func createServer() {
 }
 
 func createClient() {
-	proxy := client.NewProxy("client1", "pass1234")
-	balance := proxy.Transfer("ACC4", "ACC2", 50.)
+	proxy := client.NewProxy("ACC4", "pudim")
+	balance := proxy.GetBalance("ACC4")
 	log.Printf("Balance: %s", balance)
 }
 

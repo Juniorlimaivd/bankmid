@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/hex"
 	"log"
 
 	"../common"
@@ -10,8 +11,8 @@ import (
 type Requestor struct {
 	crh        *ClientRequestHandler
 	marshaller *common.Marshaller
-	usuario    string
-	senha      string
+	username   string
+	password   string
 }
 
 func newRequestor(user string, password string) *Requestor {
@@ -19,8 +20,8 @@ func newRequestor(user string, password string) *Requestor {
 	return &Requestor{
 		crh:        crh,
 		marshaller: new(common.Marshaller),
-		usuario:    user,
-		senha:      password,
+		username:   user,
+		password:   password,
 	}
 }
 
@@ -28,7 +29,7 @@ func (r *Requestor) getServiceInfo(name string) (string, int, string) {
 	crh := newClientRequestHandler("localhost", 5555)
 	crh.connect()
 
-	requestInfo := common.RequestInfo{Name: name, Usuario: r.usuario, Senha: r.senha}
+	requestInfo := common.RequestInfo{Name: name, Username: r.username, Password: r.password}
 
 	data := r.marshaller.Marshall(requestInfo)
 
@@ -44,7 +45,7 @@ func (r *Requestor) getServiceInfo(name string) (string, int, string) {
 
 	r.marshaller.Unmarshall(retData, returnPkt)
 
-	return returnPkt.Servico.IP, int(returnPkt.Servico.Port), returnPkt.Key
+	return returnPkt.ServiceInfo.IP, int(returnPkt.ServiceInfo.Port), returnPkt.Key
 }
 
 func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
@@ -56,12 +57,21 @@ func (r *Requestor) invoke(request common.RequestPkt) *common.ReturnPkt {
 	r.crh.connect()
 
 	marshContent := r.marshaller.Marshall(request)
+	keyData, _ := hex.DecodeString(key)
 
-	r.crh.send(marshContent)
+	encryptedContent := common.Encrypt(keyData, marshContent)
+
+	content := common.Request{Username: r.username, Data: encryptedContent}
+
+	packet := r.marshaller.Marshall(content)
+
+	r.crh.send(packet)
 
 	marshRet := r.crh.receive()
+
+	decrypted := common.Decrypt(keyData, marshRet)
 	var resPkt common.ReturnPkt
-	r.marshaller.Unmarshall(marshRet, &resPkt)
+	r.marshaller.Unmarshall(decrypted, &resPkt)
 
 	return &resPkt
 }

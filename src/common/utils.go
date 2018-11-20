@@ -6,6 +6,11 @@ type RequestPkt struct {
 	Args       []interface{}
 }
 
+type Request struct {
+	Username string
+	Data     []byte
+}
+
 // NewRequestPkt ...
 func NewRequestPkt(methodName string, args ...interface{}) RequestPkt {
 	var _args []interface{}
@@ -40,20 +45,20 @@ type ConsultPkt struct {
 
 // ConsultReturnPkt ...
 type ConsultReturnPkt struct {
-	Servico Service
-	Key     string
+	ServiceInfo *Service
+	Key         string
 }
 
 // RequestInfo ...
 type RequestInfo struct {
-	Name    string
-	Usuario string
-	Senha   string
+	Name     string
+	Username string
+	Password string
 }
 
 // User information ...
 type User struct {
-	Usuario string
-	Senha string
-	Key string
+	Username string
+	Password string
+	Key      string
 }

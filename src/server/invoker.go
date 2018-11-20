@@ -1,6 +1,7 @@
 package server
 
 import (
+	"encoding/hex"
 	"io"
 	"log"
 	"reflect"
@@ -117,11 +118,61 @@ func (i *Invoker) handleRequestPkt(requestPkt *common.RequestPkt) common.ReturnP
 	return common.ReturnPkt{MethodName: requestPkt.MethodName, ReturnValue: ret, Err: err}
 }
 
+func (i *Invoker) separatePacket(data []byte) *common.Request {
+	req := new(common.Request)
+	i.marshaller.Unmarshall(data, &req)
+	return req
+}
+
+func (i *Invoker) getUserKey(request *common.Request) string {
+	dnsSrh := newClientRequestHandler("localhost", 5555)
+	dnsSrh.connect()
+
+	requestInfo := common.RequestInfo{Name: request.Username, Username: "", Password: ""}
+
+	data := i.marshaller.Marshall(requestInfo)
+
+	consultPkt := common.ConsultPkt{ConsultType: "consultname", Data: data}
+
+	pkt := i.marshaller.Marshall(consultPkt)
+
+	dnsSrh.send(pkt)
+
+	ret := dnsSrh.receive()
+
+	returnPkt := new(common.ConsultReturnPkt)
+
+	i.marshaller.Unmarshall(ret, returnPkt)
+
+	return returnPkt.Key
+
+}
+
 func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 
 	for {
 		data, err := srh.receive()
+
+		switch {
+		case err == io.EOF:
+			log.Println("close this connection.\n   ---")
+			i.srh.accept()
+			continue
+		case err != nil:
+			log.Println("\nError reading command. Got: \n", err)
+			continue
+		}
+
+		req := i.separatePacket(data)
+
+		key := i.getUserKey(req)
+
+		keyData, _ := hex.DecodeString(key)
+
+		data = common.Decrypt(keyData, req.Data)
+
 		request := new(common.RequestPkt)
+
 		if err == nil {
 			err = i.marshaller.Unmarshall(data, &request)
 		}
@@ -140,7 +191,10 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 			start := time.Now()
 			returnPkt := i.handleRequestPkt(request)
 			pkt := i.marshaller.Marshall(returnPkt)
-			srh.send(pkt)
+
+			encryptedContent := common.Encrypt(keyData, pkt)
+
+			srh.send(encryptedContent)
 			end := time.Now()
 			log.Printf("%s - %.2f us", returnPkt, float64(end.Sub(start).Nanoseconds()/1000.))
 

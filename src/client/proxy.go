@@ -8,12 +8,10 @@ import (
 
 // Proxy ...
 type Proxy struct {
-	host      string
-	port      int
 	requestor *Requestor
 }
 
-func NewProxy(host string, port int, user string, password string) *Proxy {
+func NewProxy(user string, password string) *Proxy {
 	return &Proxy{
 		requestor: newRequestor(user, password),
 	}
