@@ -14,22 +14,32 @@ type ServerRequestHandler struct {
 	conn        net.Conn
 	outToClient *bufio.Reader
 	inToClient  *bufio.Writer
-	remoteAddr  string
+	remoteIP    string
+	remotePort  int
 }
 
-func newServerRequestHandler(port int) *ServerRequestHandler {
+func newServerRequestHandler(port int) (*ServerRequestHandler, error) {
 	tcpSRH := new(ServerRequestHandler)
-	tcpSRH.listener, _ = net.Listen("tcp", ":"+strconv.Itoa(port))
+	tcpSRH.listener, _ = net.Listen("tcp", "0.0.0.0:"+strconv.Itoa(port))
 
 	log.Printf("DNS Listen on %s", tcpSRH.listener.Addr().String())
 	tcpSRH.conn, _ = tcpSRH.listener.Accept()
+	remoteAddr := tcpSRH.conn.RemoteAddr().String()
 
-	log.Printf("Accept a connection request from %s", tcpSRH.conn.RemoteAddr())
-	tcpSRH.remoteAddr = tcpSRH.conn.RemoteAddr().String()
+	log.Printf("Accept a connection request from %s", remoteAddr)
+
+	remoteIP, remotePort, err := net.SplitHostPort(remoteAddr)
+	if err != nil {
+		return nil, err
+	}
+
+	tcpSRH.remoteIP = remoteIP
+	tcpSRH.remotePort, _ = strconv.Atoi(remotePort)
+
 	tcpSRH.inToClient = bufio.NewWriter(tcpSRH.conn)
 	tcpSRH.outToClient = bufio.NewReader(tcpSRH.conn)
 
-	return tcpSRH
+	return tcpSRH, nil
 }
 
 func (c *ServerRequestHandler) send(msg []byte) {

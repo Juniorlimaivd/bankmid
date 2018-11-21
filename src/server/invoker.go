@@ -42,24 +42,38 @@ func NewInvoker(object interface{}, localPort int, dnsAddr string, dnsPort int) 
 		object:     object}
 
 	inv.registerMethods()
-	inv.srh = newServerRequestHandler(localPort)
+	inv.srh, _ = newServerRequestHandler(localPort)
 	return &inv
 }
 
 func (i *Invoker) registerMethodInDNS(name string) {
 	log.Printf("Attempt to connect to DNS (%s:%d)", i.dnsAddr, i.dnsPort)
 	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
-	dnsSrh.connect()
-
-	service := common.Service{Name: name, IP: GetOutboundIP(), Port: int32(i.localPort), AccessLevel: 1}
-
+	err := dnsSrh.connect()
+	if err != nil {
+		log.Fatalf("It was not possible to connect to %s:%d", i.dnsAddr, i.dnsPort)
+	}
+	localIP := GetOutboundIP()
+	service := common.Service{Name: name, IP: localIP, Port: int32(i.localPort), AccessLevel: 1}
+	log.Printf("Registering IP: %s | Port: %d", localIP, i.localPort)
 	data := i.marshaller.Marshall(service)
 
 	consult := common.ConsultPkt{ConsultType: "register", Data: data}
 
 	pkt := i.marshaller.Marshall(consult)
 
-	dnsSrh.send(pkt)
+	err = dnsSrh.send(pkt)
+	if err != nil {
+		log.Printf("Error sending package %s", err)
+	}
+	ret := dnsSrh.receive()
+	returnPkt := new(common.RegisterResultPkt)
+	err = i.marshaller.Unmarshall(ret, &returnPkt)
+	if err != nil {
+		log.Println("Error trying to register on DNS")
+		return
+	}
+	log.Printf("%s:%d was successfully registered", returnPkt.IP, returnPkt.Port)
 }
 
 func (i *Invoker) registerMethods() {
@@ -134,7 +148,7 @@ func (i *Invoker) separatePacket(data []byte) *common.Request {
 }
 
 func (i *Invoker) getUserKey(request *common.Request) string {
-	dnsSrh := newClientRequestHandler("localhost", 5000)
+	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
 	dnsSrh.connect()
 
 	requestInfo := common.RequestInfo{Name: request.Username, Username: "", Password: ""}
@@ -217,7 +231,7 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 			i.srh.accept()
 			continue
 		case err != nil:
-			log.Printf("\nError reading command. Got: \n", err)
+			log.Printf("\nError reading command. Got: %err", err)
 			continue
 		}
 

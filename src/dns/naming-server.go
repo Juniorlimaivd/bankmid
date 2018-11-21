@@ -8,18 +8,28 @@ import (
 
 // NamingService handles information about all the registered service and userss
 type NamingService struct {
-	services map[string]*common.Service
-	users    map[string]*common.User
+	services        map[string][]*common.Service
+	lastServerIndex map[string]int
+	users           map[string]*common.User
 }
 
 func (dns *NamingService) addService(service *common.Service) {
 	log.Printf("Adding service %s in IP: %s and Port %d", service.Name, service.IP, service.Port)
-	dns.services[service.Name] = service
+	dns.services[service.Name] = append(dns.services[service.Name], service)
+	dns.lastServerIndex[service.Name] = len(dns.services[service.Name]) - 1
+	log.Println("Current service ", dns.lastServerIndex[service.Name])
 }
 
 func (dns *NamingService) getService(name string) *common.Service {
 	log.Printf("Getting service of name %s", name)
-	return dns.services[name]
+	currServerIndex := dns.lastServerIndex[name]
+	log.Println("Current service ", currServerIndex)
+	dns.lastServerIndex[name]++
+	if dns.lastServerIndex[name] == len(dns.services[name]) {
+		dns.lastServerIndex[name] = 0
+	}
+
+	return dns.services[name][currServerIndex]
 }
 
 func (dns *NamingService) getKey(user string, password string) string {
@@ -47,7 +57,8 @@ type NamingServer struct {
 // Start ...
 func (ns *NamingServer) Start(port int) {
 	ns.dns = new(NamingService)
-	ns.dns.services = make(map[string]*common.Service)
+	ns.dns.services = make(map[string][]*common.Service)
+	ns.dns.lastServerIndex = make(map[string]int)
 	ns.dns.users = make(map[string]*common.User)
 	ns.dns.users["ACC4"] = &common.User{Username: "ACC4",
 		Password:    "pudim",
@@ -55,11 +66,18 @@ func (ns *NamingServer) Start(port int) {
 		AccessLevel: 1}
 
 	for {
-		ns.srh = newServerRequestHandler(port)
+		var err error
+		ns.srh, _ = newServerRequestHandler(port)
+
 		data := ns.srh.receive()
 		pkt := new(common.ConsultPkt)
 
-		ns.marshaller.Unmarshall(data, pkt)
+		err = ns.marshaller.Unmarshall(data, pkt)
+		if err != nil {
+			log.Printf("It was not possible to unmarshall packet from %s:%d", ns.srh.remoteIP, ns.srh.remotePort)
+			continue
+		}
+
 		log.Printf("packet type: %s", pkt.ConsultType)
 		// fmt.Printf(pkt.ConsultType)
 		switch pkt.ConsultType {
@@ -69,6 +87,12 @@ func (ns *NamingServer) Start(port int) {
 				s := new(common.Service)
 				ns.marshaller.Unmarshall(pkt.Data, s)
 				ns.dns.addService(s)
+
+				returnPkt := &common.RegisterResultPkt{
+					IP:   ns.srh.remoteIP,
+					Port: s.Port}
+				pkt := ns.marshaller.Marshall(returnPkt)
+				ns.srh.send(pkt)
 			}
 
 		case "consult":

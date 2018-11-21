@@ -29,21 +29,29 @@ func GetOutboundIP() string {
 	return localAddr.IP.String()
 }
 
-func newServerRequestHandler(port int) *ServerRequestHandler {
+func newServerRequestHandler(port int) (*ServerRequestHandler, error) {
+	var err error
 	tcpSRH := new(ServerRequestHandler)
-	tcpSRH.listener, _ = net.Listen("tcp", ":"+strconv.Itoa(port))
+	tcpSRH.listener, err = net.Listen("tcp", ":"+strconv.Itoa(port))
+	if err != nil {
+		log.Fatalf("It was not possible to create the server: %s", err)
+	}
 	tcpSRH.remoteAddr = GetOutboundIP()
-	log.Println("Server IP is : ", tcpSRH.remoteAddr)
+	log.Printf("Server IP is : %s", tcpSRH.remoteAddr)
 
-	return tcpSRH
+	return tcpSRH, nil
 }
 
 func (c *ServerRequestHandler) accept() {
-	// log.Println("Listen on", tcpSRH.listener.Addr().String())
-	c.connection, _ = c.listener.Accept()
-	// log.Println("Accept a connection request from", conn.RemoteAddr())
+	var err error
+	// log.Printf("Listen on", tcpSRH.listener.Addr().String())
+	c.connection, err = c.listener.Accept()
+	if err != nil {
+		log.Printf("It was not possible to accept %s", err)
+	}
+	// log.Printf("Accept a connection request from", conn.RemoteAddr())
 	c.remoteAddr = GetOutboundIP()
-	log.Println("Server IP is : ", c.remoteAddr)
+	log.Printf("Server IP is : %s", c.remoteAddr)
 	c.inToClient = bufio.NewWriter(c.connection)
 	c.outToClient = bufio.NewReader(c.connection)
 }

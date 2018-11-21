@@ -50,6 +50,12 @@ type ConsultReturnPkt struct {
 	Key         string
 }
 
+// RegisterResultPkt ...
+type RegisterResultPkt struct {
+	IP   string
+	Port int32
+}
+
 // RequestInfo ...
 type RequestInfo struct {
 	Name     string

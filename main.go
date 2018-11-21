@@ -37,8 +37,6 @@ func createDNS(port int) {
 }
 
 func main() {
-	var err error
-
 	mwType := flag.String(
 		"type",
 		"",
@@ -48,6 +46,7 @@ func main() {
 	dnsPort := flag.Int("dnsPort", -1, "")
 	flag.Parse()
 
+	var err error
 	if *mwType == "" {
 		*mwType = os.Getenv("MW_TYPE")
 		if *mwType == "" {
