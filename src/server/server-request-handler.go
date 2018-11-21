@@ -2,6 +2,7 @@ package server
 
 import (
 	"bufio"
+	"log"
 	"net"
 	"strconv"
 )
@@ -16,9 +17,23 @@ type ServerRequestHandler struct {
 	remoteAddr  string
 }
 
+func GetOutboundIP() string {
+	conn, err := net.Dial("udp", "8.8.8.8:80")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	localAddr := conn.LocalAddr().(*net.UDPAddr)
+
+	return localAddr.IP.String()
+}
+
 func newServerRequestHandler(port int) *ServerRequestHandler {
 	tcpSRH := new(ServerRequestHandler)
 	tcpSRH.listener, _ = net.Listen("tcp", ":"+strconv.Itoa(port))
+	tcpSRH.remoteAddr = GetOutboundIP()
+	log.Println("Server IP is : ", tcpSRH.remoteAddr)
 
 	return tcpSRH
 }
@@ -27,7 +42,8 @@ func (c *ServerRequestHandler) accept() {
 	// log.Println("Listen on", tcpSRH.listener.Addr().String())
 	c.connection, _ = c.listener.Accept()
 	// log.Println("Accept a connection request from", conn.RemoteAddr())
-	c.remoteAddr = c.connection.RemoteAddr().String()
+	c.remoteAddr = GetOutboundIP()
+	log.Println("Server IP is : ", c.remoteAddr)
 	c.inToClient = bufio.NewWriter(c.connection)
 	c.outToClient = bufio.NewReader(c.connection)
 }

@@ -51,7 +51,7 @@ func (i *Invoker) registerMethodInDNS(name string) {
 	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
 	dnsSrh.connect()
 
-	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: int32(i.localPort), AccessLevel: 1}
+	service := common.Service{Name: name, IP: GetOutboundIP(), Port: int32(i.localPort), AccessLevel: 1}
 
 	data := i.marshaller.Marshall(service)
 
