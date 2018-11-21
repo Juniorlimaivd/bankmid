@@ -23,6 +23,7 @@ type MethodInfo struct {
 type Invoker struct {
 	dnsAddr    string
 	dnsPort    int
+	localPort  int
 	srh        *ServerRequestHandler
 	marshaller *common.Marshaller
 	methods    map[string]*MethodInfo
@@ -30,17 +31,18 @@ type Invoker struct {
 }
 
 // NewInvoker creates a new invoker
-func NewInvoker(object interface{}, dnsAddr string, dnsPort int) *Invoker {
+func NewInvoker(object interface{}, localPort int, dnsAddr string, dnsPort int) *Invoker {
 
 	inv := Invoker{
 		dnsAddr:    dnsAddr,
 		dnsPort:    dnsPort,
+		localPort:  localPort,
 		srh:        new(ServerRequestHandler),
 		marshaller: new(common.Marshaller),
 		object:     object}
 
 	inv.registerMethods()
-	inv.srh = newServerRequestHandler(1234)
+	inv.srh = newServerRequestHandler(localPort)
 	return &inv
 }
 
@@ -49,7 +51,7 @@ func (i *Invoker) registerMethodInDNS(name string) {
 	dnsSrh := newClientRequestHandler(i.dnsAddr, i.dnsPort)
 	dnsSrh.connect()
 
-	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: 1234, AccessLevel: 1}
+	service := common.Service{Name: name, IP: i.srh.remoteAddr, Port: int32(i.localPort), AccessLevel: 1}
 
 	data := i.marshaller.Marshall(service)
 
@@ -132,7 +134,7 @@ func (i *Invoker) separatePacket(data []byte) *common.Request {
 }
 
 func (i *Invoker) getUserKey(request *common.Request) string {
-	dnsSrh := newClientRequestHandler("localhost", 5555)
+	dnsSrh := newClientRequestHandler("localhost", 5000)
 	dnsSrh.connect()
 
 	requestInfo := common.RequestInfo{Name: request.Username, Username: "", Password: ""}

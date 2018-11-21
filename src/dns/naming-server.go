@@ -46,7 +46,7 @@ type NamingServer struct {
 }
 
 // Start ...
-func (ns *NamingServer) Start() {
+func (ns *NamingServer) Start(port int) {
 	ns.dns = new(NamingService)
 	ns.dns.services = make(map[string]*common.Service)
 	ns.dns.users = make(map[string]*common.User)
@@ -56,7 +56,7 @@ func (ns *NamingServer) Start() {
 		AccessLevel: 1}
 
 	for {
-		ns.srh = newServerRequestHandler(5555)
+		ns.srh = newServerRequestHandler(port)
 		data := ns.srh.receive()
 		pkt := new(common.ConsultPkt)
 
