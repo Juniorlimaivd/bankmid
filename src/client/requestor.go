@@ -7,6 +7,8 @@ import (
 	"../common"
 )
 
+var DNSKEY = "6368612e676520746869732070617373776f726420746f206120736563726e21"
+
 // Requestor ...
 type Requestor struct {
 	dnsAddr    string
@@ -41,9 +43,15 @@ func (r *Requestor) getServiceInfo(name string) (string, int, string) {
 
 	pkt := r.marshaller.Marshall(consultPkt)
 
+	keyData, _ := hex.DecodeString(DNSKEY)
+
+	pkt = common.Encrypt(keyData, pkt)
+
 	crh.send(pkt)
 
 	retData := crh.receive()
+
+	retData = common.Decrypt(keyData, retData)
 
 	returnPkt := new(common.ConsultReturnPkt)
 

@@ -1,10 +1,13 @@
 package dns
 
 import (
+	"encoding/hex"
 	"log"
 
 	"../common"
 )
+
+var DNSKEY = "6368612e676520746869732070617373776f726420746f206120736563726e21"
 
 // NamingService handles information about all the registered service and userss
 type NamingService struct {
@@ -70,6 +73,11 @@ func (ns *NamingServer) Start(port int) {
 		ns.srh, _ = newServerRequestHandler(port)
 
 		data := ns.srh.receive()
+
+		keyData, _ := hex.DecodeString(DNSKEY)
+
+		data = common.Decrypt(keyData, data)
+
 		pkt := new(common.ConsultPkt)
 
 		err = ns.marshaller.Unmarshall(data, pkt)
@@ -104,12 +112,19 @@ func (ns *NamingServer) Start(port int) {
 				key := ns.dns.getKey(requestInfo.Username, requestInfo.Password)
 				returnPkt := new(common.ConsultReturnPkt)
 
-				if key != "" && s.AccessLevel <= ns.dns.users[requestInfo.Username].AccessLevel {
-					returnPkt.ServiceInfo = s
-					returnPkt.Key = key
+				if key != "" && ns.dns.users[requestInfo.Username] != nil && s != nil {
+					if s.AccessLevel <= ns.dns.users[requestInfo.Username].AccessLevel {
+						returnPkt.ServiceInfo = s
+						returnPkt.Key = key
+					}
 				}
 
 				pkt := ns.marshaller.Marshall(returnPkt)
+
+				keyData, _ := hex.DecodeString(DNSKEY)
+
+				pkt = common.Encrypt(keyData, pkt)
+
 				ns.srh.send(pkt)
 			}
 		case "consultname":
@@ -125,6 +140,11 @@ func (ns *NamingServer) Start(port int) {
 				}
 
 				pkt := ns.marshaller.Marshall(returnPkt)
+
+				keyData, _ := hex.DecodeString(DNSKEY)
+
+				pkt = common.Encrypt(keyData, pkt)
+
 				ns.srh.send(pkt)
 			}
 
