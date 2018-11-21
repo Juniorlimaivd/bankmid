@@ -175,11 +175,11 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 
 		switch {
 		case err == io.EOF:
-			log.Println("close this connection.\n   ---")
+			log.Printf("close this connection.\n   ---")
 			i.srh.accept()
 			continue
 		case err != nil:
-			log.Println("\nError reading command. Got: \n", err)
+			log.Printf("\nError reading command. Got: \n", err)
 			continue
 		}
 
@@ -188,7 +188,7 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 		key := i.getUserKey(req)
 
 		if key == "" {
-			log.Println("No key found for user.")
+			log.Printf("No key found for user.")
 			i.sendEmptyResponse(srh, []byte(""))
 			i.srh.connection.Close()
 			break
@@ -199,7 +199,7 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 		data = common.Decrypt(keyData, req.Data)
 
 		if len(data) == 0 {
-			log.Println("Error decrypting message. Wrong key or data.")
+			log.Printf("Error decrypting message. Wrong key or data.")
 			i.sendEmptyResponse(srh, []byte(""))
 			i.srh.connection.Close()
 			break
@@ -213,11 +213,11 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 
 		switch {
 		case err == io.EOF:
-			log.Println("close this connection.\n   ---")
+			log.Printf("close this connection.\n   ---")
 			i.srh.accept()
 			continue
 		case err != nil:
-			log.Println("\nError reading command. Got: \n", err)
+			log.Printf("\nError reading command. Got: \n", err)
 			continue
 		}
 
@@ -229,7 +229,7 @@ func (i *Invoker) handleConnection(srh *ServerRequestHandler) {
 			encryptedContent := common.Encrypt(keyData, pkt)
 
 			if len(encryptedContent) == 0 {
-				fmt.Println("Failed encrypting message.")
+				fmt.Printf("Failed encrypting message.")
 				i.sendEmptyResponse(srh, []byte(""))
 				i.srh.connection.Close()
 				return

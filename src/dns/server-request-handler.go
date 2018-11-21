@@ -21,10 +21,10 @@ func newServerRequestHandler(port int) *ServerRequestHandler {
 	tcpSRH := new(ServerRequestHandler)
 	tcpSRH.listener, _ = net.Listen("tcp", ":"+strconv.Itoa(port))
 
-	log.Println("DNS Listen on", tcpSRH.listener.Addr().String())
+	log.Printf("DNS Listen on %s", tcpSRH.listener.Addr().String())
 	tcpSRH.conn, _ = tcpSRH.listener.Accept()
 
-	log.Println("Accept a connection request from", tcpSRH.conn.RemoteAddr())
+	log.Printf("Accept a connection request from %s", tcpSRH.conn.RemoteAddr())
 	tcpSRH.remoteAddr = tcpSRH.conn.RemoteAddr().String()
 	tcpSRH.inToClient = bufio.NewWriter(tcpSRH.conn)
 	tcpSRH.outToClient = bufio.NewReader(tcpSRH.conn)

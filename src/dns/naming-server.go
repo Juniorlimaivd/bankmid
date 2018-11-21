@@ -1,7 +1,6 @@
 package dns
 
 import (
-	"fmt"
 	"log"
 
 	"../common"
@@ -61,8 +60,8 @@ func (ns *NamingServer) Start(port int) {
 		pkt := new(common.ConsultPkt)
 
 		ns.marshaller.Unmarshall(data, pkt)
-		fmt.Printf("packet type: ")
-		fmt.Println(pkt.ConsultType)
+		log.Printf("packet type: %s", pkt.ConsultType)
+		// fmt.Printf(pkt.ConsultType)
 		switch pkt.ConsultType {
 
 		case "register":

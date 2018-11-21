@@ -19,19 +19,19 @@ func Encrypt(key []byte, message []byte) (ciphertext []byte) {
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
 	iv := make([]byte, 12)
 	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
@@ -45,13 +45,13 @@ func Encrypt(key []byte, message []byte) (ciphertext []byte) {
 func Decrypt(key []byte, ciphertext []byte) (message []byte) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
 	aesgcm, err := cipher.NewGCM(block)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
@@ -60,7 +60,7 @@ func Decrypt(key []byte, ciphertext []byte) (message []byte) {
 
 	plaintext, err := aesgcm.Open(nil, iv, msg, nil)
 	if err != nil {
-		fmt.Println(err.Error())
+		fmt.Printf(err.Error())
 		return make([]byte, 0)
 	}
 
@@ -72,7 +72,7 @@ func Decrypt(key []byte, ciphertext []byte) (message []byte) {
 func main() {
 	key, _ := hex.DecodeString("6368616e676520746869732070617373776f726420746f206120736563726574")
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Println("Digite a mensagem: ")
+	fmt.Printf("Digite a mensagem: ")
 	fmt.Print("->")
 	msg, _ := reader.ReadString('\n')
 

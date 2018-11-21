@@ -51,7 +51,7 @@ func main() {
 	if *mwType == "" {
 		*mwType = os.Getenv("MW_TYPE")
 		if *mwType == "" {
-			log.Fatalln("Type is required")
+			log.Fatalf("Type is required")
 		}
 	}
 
