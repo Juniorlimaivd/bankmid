@@ -12,6 +12,8 @@ import (
 	"../common"
 )
 
+var DNSKEY = "6368612e676520746869732070617373776f726420746f206120736563726e21"
+
 // MethodInfo ...
 type MethodInfo struct {
 	Method    reflect.Method
@@ -58,6 +60,10 @@ func (i *Invoker) registerMethodInDNS(name string) {
 	consult := common.ConsultPkt{ConsultType: "register", Data: data}
 
 	pkt := i.marshaller.Marshall(consult)
+
+	keyData, _ := hex.DecodeString(DNSKEY)
+
+	pkt = common.Encrypt(keyData, pkt)
 
 	dnsSrh.send(pkt)
 }
@@ -145,9 +151,15 @@ func (i *Invoker) getUserKey(request *common.Request) string {
 
 	pkt := i.marshaller.Marshall(consultPkt)
 
+	keyData, _ := hex.DecodeString(DNSKEY)
+
+	pkt = common.Encrypt(keyData, pkt)
+
 	dnsSrh.send(pkt)
 
 	ret := dnsSrh.receive()
+
+	ret = common.Decrypt(keyData, ret)
 
 	returnPkt := new(common.ConsultReturnPkt)
 
