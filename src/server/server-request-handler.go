@@ -2,8 +2,10 @@ package server
 
 import (
 	"bufio"
+	"io/ioutil"
 	"log"
 	"net"
+	"net/http"
 	"strconv"
 )
 
@@ -18,15 +20,17 @@ type ServerRequestHandler struct {
 }
 
 func GetOutboundIP() string {
-	conn, err := net.Dial("udp", "8.8.8.8:80")
+	url := "https://api.ipify.org?format=text"
+	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
-	defer conn.Close()
-
-	localAddr := conn.LocalAddr().(*net.UDPAddr)
-
-	return localAddr.IP.String()
+	defer resp.Body.Close()
+	ip, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	return string(ip)
 }
 
 func newServerRequestHandler(port int) (*ServerRequestHandler, error) {
